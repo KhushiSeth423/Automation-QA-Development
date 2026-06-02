@@ -1,0 +1,204 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "b006868b-e3fe-43da-86a1-db34a6460d4e",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "49840b39-8ba3-4d23-b5fe-24ab964881a5",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.all();\n\nreturn data\n  .sort((a, b) => b.json.market_cap - a.json.market_cap)\n  .slice(0, 5);"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "dfd4ef4d-f796-440f-b6d0-4c49a7901f71",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "=https://api.coingecko.com/api/v3/coins/{{$json[\"id\"]}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "eb6f5625-be6b-4386-9411-0dbe3d4e1d88",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b24141e7-5058-407b-9204-26b228e0f6b1",
+              "leftValue": "={{$json[\"market_data\"][\"price_change_percentage_24h\"]}}",
+              "rightValue": -100,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "9e9046c8-39bd-40cb-a96e-51316eb8e6c6",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        0
+      ],
+      "id": "8ef8c85e-5d90-4fc6-b7dc-a216b719751a",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "resource": "spreadsheet",
+        "title": "Crypto_Digest",
+        "sheetsUi": {
+          "sheetValues": [
+            {
+              "title": "Crypto_Digest"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        -96
+      ],
+      "id": "a56d8751-3a05-40f9-ac3d-c965c015f48f",
+      "name": "Create spreadsheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "WCiUujGE95FnoNBJ",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Create spreadsheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "fede7d5d-1ea1-4fab-b43f-a421c67c6a24",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c23a4f69b0afa4e04f4e83b9114ce3bce244ae83dcff1abce31527df162cdad5"
+  },
+  "id": "2SGbC5iGHjvesMKU",
+  "tags": []
+}
